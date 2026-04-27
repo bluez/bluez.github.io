@@ -1,9 +1,7 @@
 heading: "Currently **BlueZ** consists of many separate modules:"
 items:
-  - "Bluetooth kernel subsystem core"
-  - "L2CAP and SCO audio kernel layers"
-  - "RFCOMM, BNEP, CMTP and HID kernel implementations"
-  - "HCI UART, USB, PCMCIA and virtual device drivers"
-  - "General Bluetooth and SDP libraries and daemon"
+  - "Bluetooth kernel subsystem core (including L2CAP, SCO and RFCOMM)"
+  - "HCI UART, USB, PCI-E and virtual adapter drivers"
+  - "System daemon with D-Bus APIs for access and integration"
   - "Configuration and testing utilities"
   - "Protocol decoding and analysis tools"
