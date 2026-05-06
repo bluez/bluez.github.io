@@ -465,7 +465,7 @@ ul {
 
 .modules-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 2rem;
 }
 
@@ -497,14 +497,12 @@ ul {
 
 @media only screen and (max-width: 1050px) {
   .modules-grid {
-    grid-template-columns: repeat(4, 1fr);
     gap: 15px 20px;
   }
 }
 
 @media only screen and (max-width: 750px) {
   .modules-grid {
-    grid-template-columns: repeat(3, 1fr);
     gap: 15px 20px;
   }
   .modules h2 {
@@ -517,7 +515,6 @@ ul {
 
 @media only screen and (max-width: 550px) {
   .modules-grid {
-    grid-template-columns: repeat(2, 1fr);
     gap: 15px 20px;
   }
   .modules {
