@@ -1,0 +1,172 @@
+name: Generate Weekly Report
+
+on:
+  # Run every Monday at 08:00 UTC
+  schedule:
+    - cron: '0 8 * * 1'
+
+  # Allow manual trigger with optional date override
+  workflow_dispatch:
+    inputs:
+      start_date:
+        description: 'Start date (YYYY-MM-DD), defaults to previous Monday'
+        required: false
+      end_date:
+        description: 'End date (YYYY-MM-DD), defaults to previous Sunday'
+        required: false
+      model:
+        description: 'AI model to use'
+        required: false
+        default: 'openai/gpt-4o'
+
+permissions:
+  contents: write
+  pull-requests: write
+  models: read
+
+jobs:
+  generate-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Determine date range
+        id: dates
+        run: |
+          if [ -n "${{ inputs.start_date }}" ] && [ -n "${{ inputs.end_date }}" ]; then
+            START="${{ inputs.start_date }}"
+            END="${{ inputs.end_date }}"
+          else
+            # Previous week: Monday to Sunday
+            DOW=$(date +%u)
+            DAYS_SINCE_MON=$(( DOW - 1 ))
+            if [ "$DAYS_SINCE_MON" -eq 0 ]; then
+              DAYS_SINCE_MON=7
+            fi
+            LAST_MON=$(( DAYS_SINCE_MON + 7 ))
+            START=$(date -d "-${LAST_MON} days" +%Y-%m-%d)
+            END=$(date -d "-${DAYS_SINCE_MON} days" +%Y-%m-%d)
+          fi
+
+          WEEK_NUM=$(date -d "$START" +%V)
+          YEAR=$(date -d "$START" +%G)
+
+          echo "start_date=${START}" >> "$GITHUB_OUTPUT"
+          echo "end_date=${END}" >> "$GITHUB_OUTPUT"
+          echo "week_num=${WEEK_NUM}" >> "$GITHUB_OUTPUT"
+          echo "year=${YEAR}" >> "$GITHUB_OUTPUT"
+
+          echo "Date range: ${START} to ${END} (W${WEEK_NUM}, ${YEAR})"
+
+      - name: Fetch mailing list data
+        id: fetch
+        run: |
+          chmod +x .github/scripts/fetch-lore.sh
+          .github/scripts/fetch-lore.sh \
+            "${{ steps.dates.outputs.start_date }}" \
+            "${{ steps.dates.outputs.end_date }}" \
+            > mailing_list_data.txt 2>fetch.log
+
+          cat fetch.log
+          echo ""
+          echo "Data size: $(wc -l < mailing_list_data.txt) lines, $(wc -c < mailing_list_data.txt) bytes"
+
+          # Fail if no data was collected
+          if [ ! -s mailing_list_data.txt ]; then
+            echo "::error::No mailing list data collected"
+            exit 1
+          fi
+
+      - name: Generate report with AI
+        id: inference
+        uses: actions/ai-inference@v2
+        with:
+          prompt-file: '.github/prompts/weekly-report.prompt.yml'
+          model: ${{ inputs.model || 'openai/gpt-4o' }}
+          max-completion-tokens: 16000
+          temperature: 0.3
+          input: |
+            week_num: ${{ steps.dates.outputs.week_num }}
+            year: ${{ steps.dates.outputs.year }}
+            start_date: ${{ steps.dates.outputs.start_date }}
+            end_date: ${{ steps.dates.outputs.end_date }}
+          file_input: |
+            mailing_list_data: ./mailing_list_data.txt
+
+      - name: Create Hugo post
+        id: post
+        run: |
+          WEEK="${{ steps.dates.outputs.week_num }}"
+          YEAR="${{ steps.dates.outputs.year }}"
+          END_DATE="${{ steps.dates.outputs.end_date }}"
+          RESPONSE_FILE="${{ steps.inference.outputs.response-file }}"
+          POST_DIR="content/news/${YEAR}"
+          POST_FILE="${POST_DIR}/weekly-report-w${WEEK}.md"
+
+          mkdir -p "${POST_DIR}"
+
+          # Extract the report body (skip the first 4 lines: title, blank, subtitle, blank)
+          BODY=$(tail -n +5 "$RESPONSE_FILE")
+
+          # Extract a plain-text summary from the first "Total messages" line
+          TOTAL_LINE=$(grep -m1 "^\\*\\*Total messages:" "$RESPONSE_FILE" || echo "")
+          SUMMARY_LINE=$(echo "$TOTAL_LINE" | sed 's/\*\*//g')
+
+          # Build the Hugo post
+          cat > "${POST_FILE}" << FRONTMATTER
+          ---
+          title: "linux-bluetooth Weekly Report - Week ${WEEK}"
+          date: ${END_DATE}
+          summary: "${SUMMARY_LINE}"
+          draft: false
+          ---
+          FRONTMATTER
+
+          # Remove leading spaces from heredoc
+          sed -i 's/^          //' "${POST_FILE}"
+
+          # Append the report body
+          echo "$BODY" >> "${POST_FILE}"
+
+          echo "post_file=${POST_FILE}" >> "$GITHUB_OUTPUT"
+          echo "branch=weekly-report-w${WEEK}-${YEAR}" >> "$GITHUB_OUTPUT"
+          echo "week=${WEEK}" >> "$GITHUB_OUTPUT"
+
+          echo "Created: ${POST_FILE}"
+
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BRANCH="${{ steps.post.outputs.branch }}"
+          POST_FILE="${{ steps.post.outputs.post_file }}"
+          WEEK="${{ steps.post.outputs.week }}"
+          START="${{ steps.dates.outputs.start_date }}"
+          END="${{ steps.dates.outputs.end_date }}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git checkout -b "${BRANCH}"
+          git add "${POST_FILE}"
+          git commit -m "Add weekly report for Week ${WEEK} (${START} to ${END})"
+          git push origin "${BRANCH}"
+
+          gh pr create \
+            --title "Add weekly report for Week ${WEEK} (${START} to ${END})" \
+            --body "$(cat <<EOF
+          ## Weekly Report - Week ${WEEK}
+
+          Auto-generated weekly report for the linux-bluetooth mailing list.
+
+          - **Period**: ${START} to ${END}
+          - **Generated by**: actions/ai-inference with $(echo '${{ inputs.model || 'openai/gpt-4o' }}')
+          - **Data source**: lore.kernel.org/linux-bluetooth
+
+          > **Note**: This report was AI-generated and should be reviewed before merging.
+          > Please verify statistics, links, and contributor attributions.
+          EOF
+          )" \
+            --base main \
+            --head "${BRANCH}"
