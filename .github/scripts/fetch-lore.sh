@@ -50,8 +50,8 @@ fi
 WEEK_NUM=$(date -d "$START_DATE" +%V)
 YEAR=$(date -d "$START_DATE" +%G)
 
-# End date for search query (exclusive, so add 1 day)
-SEARCH_END=$(date -d "$END_DATE + 1 day" +%Y-%m-%d)
+# End date for search query (lore date range is inclusive on both ends)
+SEARCH_END="$END_DATE"
 
 echo "=== linux-bluetooth Weekly Report Data ==="
 echo "Period: ${START_DATE} to ${END_DATE} (Week ${WEEK_NUM}, ${YEAR})"
@@ -104,7 +104,7 @@ echo ""
 
 # Parse all Atom feeds into a structured format
 # Pass mailmap file paths as arguments to the Python parser
-cat "$WORKDIR"/feed_*.xml | python3 - "$BOTS_MAILMAP" "$AFFILIATIONS_MAILMAP" << 'PYTHON_SCRIPT'
+cat > "$WORKDIR/parse.py" << 'PYTHON_SCRIPT'
 import sys
 import xml.etree.ElementTree as ET
 from html import unescape
@@ -135,6 +135,11 @@ def load_affiliations_mailmap(path):
 
     Returns [(kind, pattern, affiliation), ...] where kind is
     "email", "domain", or "name".
+
+    Each line uses '->' to separate the pattern from the affiliation:
+        domain:intel.com -> Intel
+        email:user@example.com -> Company Name
+        name:Display Name -> Company Name
     """
     rules = []
     with open(path) as f:
@@ -142,22 +147,15 @@ def load_affiliations_mailmap(path):
             line = line.strip()
             if not line or line.startswith("#"):
                 continue
-            if line.startswith("domain:"):
-                rest = line[7:].strip()
-                parts = rest.split(None, 1)
-                if len(parts) == 2:
-                    rules.append(("domain", parts[0].lower(), parts[1]))
-            elif line.startswith("email:"):
-                rest = line[6:].strip()
-                parts = rest.split(None, 1)
-                if len(parts) == 2:
-                    rules.append(("email", parts[0].lower(), parts[1]))
-            elif line.startswith("name:"):
-                rest = line[5:].strip()
-                # Last token is the affiliation, everything before is the name
-                parts = rest.rsplit(None, 1)
-                if len(parts) == 2:
-                    rules.append(("name", parts[0].lower(), parts[1]))
+            for prefix, kind in [("domain:", "domain"), ("email:", "email"),
+                                 ("name:", "name")]:
+                if line.startswith(prefix):
+                    rest = line[len(prefix):]
+                    parts = rest.split("->", 1)
+                    if len(parts) == 2:
+                        rules.append((kind, parts[0].strip().lower(),
+                                      parts[1].strip()))
+                    break
     return rules
 
 
@@ -229,6 +227,10 @@ entries = []
 
 for match in re.finditer(r"<entry>(.*?)</entry>", data, re.DOTALL):
     entry_xml = "<entry>" + match.group(1) + "</entry>"
+    # Strip namespace-prefixed elements (e.g. thr:in-reply-to) that cause
+    # "unbound prefix" errors when parsing entries outside the feed root.
+    entry_xml = re.sub(r"<[a-zA-Z]+:[^>]*/>", "", entry_xml)
+    entry_xml = re.sub(r"<[a-zA-Z]+:[^>]*>.*?</[a-zA-Z]+:[^>]*>", "", entry_xml, flags=re.DOTALL)
     try:
         elem = ET.fromstring(entry_xml)
     except ET.ParseError:
@@ -341,3 +343,5 @@ print("=== ALL MESSAGES ===")
 for e in entries:
     print(f"{e['date']}\t{e['time']}\t{e['name']}\t{e['role']}\t{e['affiliation']}\t{e['subject']}\t{e['link']}")
 PYTHON_SCRIPT
+
+cat "$WORKDIR"/feed_*.xml | python3 "$WORKDIR/parse.py" "$BOTS_MAILMAP" "$AFFILIATIONS_MAILMAP"

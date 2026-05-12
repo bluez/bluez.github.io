@@ -5,15 +5,16 @@
 # with their affiliation in the weekly report data.
 #
 # Format:  One entry per non-comment, non-blank line.
+# Use '->' to separate the pattern from the affiliation name.
 #
-#   domain:<domain> <Affiliation>
+#   domain:<domain> -> <Affiliation>
 #       — any email @<domain> maps to <Affiliation>
 #
-#   email:<address> <Affiliation>
+#   email:<address> -> <Affiliation>
 #       — exact email match maps to <Affiliation>
 #
-#   name:<display-name> <Affiliation>
-#       — exact display-name match maps to <Affiliation>
+#   name:<display-name> -> <Affiliation>
+#       — exact display-name match (case-insensitive) maps to <Affiliation>
 #
 # The first matching rule wins.  Put specific (email/name) entries
 # before broad (domain) entries when there are overlaps.
@@ -22,71 +23,74 @@
 
 # ---- Intel --------------------------------------------------------
 # BlueZ maintainer; uses personal gmail but works at Intel.
-email:luiz.dentz@gmail.com Intel
-domain:intel.com Intel
+email:luiz.dentz@gmail.com -> Intel
+domain:intel.com -> Intel
 
 # ---- Red Hat ------------------------------------------------------
 # Bastien Nocera (hadess) — BlueZ contributor, GNOME/systemd, Red Hat.
-domain:hadess.net Red Hat
+domain:hadess.net -> Red Hat
 
 # ---- Qualcomm -----------------------------------------------------
 # Multiple Qualcomm domains used by different teams.
-domain:qualcomm.com Qualcomm
-domain:qti.qualcomm.com Qualcomm
-domain:oss.qualcomm.com Qualcomm
+domain:qualcomm.com -> Qualcomm
+domain:qti.qualcomm.com -> Qualcomm
+domain:oss.qualcomm.com -> Qualcomm
 
 # ---- Collabora ----------------------------------------------------
-domain:collabora.com Collabora
+domain:collabora.com -> Collabora
 
 # ---- Google --------------------------------------------------------
-domain:google.com Google
+domain:google.com -> Google
 
 # ---- Linaro --------------------------------------------------------
-domain:linaro.org Linaro
+domain:linaro.org -> Linaro
 
 # ---- BayLibre ------------------------------------------------------
-domain:baylibre.com BayLibre
+domain:baylibre.com -> BayLibre
 
 # ---- Samsung -------------------------------------------------------
-domain:samsung.com Samsung
+domain:samsung.com -> Samsung
 
 # ---- MediaTek ------------------------------------------------------
-domain:mediatek.com MediaTek
+domain:mediatek.com -> MediaTek
 
 # ---- Synaptics -----------------------------------------------------
-domain:synaptics.com Synaptics
+domain:synaptics.com -> Synaptics
 
 # ---- Fairphone -----------------------------------------------------
-domain:fairphone.com Fairphone
+domain:fairphone.com -> Fairphone
 
 # ---- UnionTech -----------------------------------------------------
-domain:uniontech.com UnionTech
+domain:uniontech.com -> UnionTech
 
 # ---- Meta / Debian -------------------------------------------------
 # Breno Leitao works at Meta but posts from @debian.org.
-email:breno.leitao@debian.org Meta
-domain:debian.org Debian
+email:leitao@debian.org -> Meta
+domain:debian.org -> Debian
 
 # ---- Fluent Logic --------------------------------------------------
-# Martin Brodeur — security researcher, posts from admin@fluentlogic.org
-# and from Martin Brodeur <...@mail.gmail.com> with fluentlogic.org relay.
-domain:fluentlogic.org Fluent Logic
+# Martin Brodeur — security researcher, posts from admin@fluentlogic.org.
+domain:fluentlogic.org -> Fluent Logic
 
 # ---- Hovold Consulting ---------------------------------------------
-domain:hovoldconsulting.com Hovold Consulting
+domain:hovoldconsulting.com -> Hovold Consulting
 
 # ---- Max Planck Institute (MPG) ------------------------------------
-domain:molgen.mpg.de Max Planck Institute
+domain:molgen.mpg.de -> Max Planck Institute
 
 # ---- kernel.org ----------------------------------------------------
 # kernel.org addresses are used by many independent maintainers and
 # also by employed developers.  We leave these unaffiliated by default;
 # specific people are mapped above (e.g. sashal@kernel.org is a bot).
-# domain:kernel.org Independent   # intentionally not set
+# domain:kernel.org -> Independent   # intentionally not set
 
 # ---- Name-based overrides ------------------------------------------
-# For contributors whose email domain does not reveal affiliation.
-name:Bastien Nocera Red Hat
-name:hadess Red Hat
-name:Martin Brodeur Fluent Logic
-name:Breno Leitao Meta
+# For contributors whose email domain does not reveal affiliation,
+# or GitHub handles used in push notifications.
+name:Bastien Nocera -> Red Hat
+name:hadess -> Red Hat
+name:Martin Brodeur -> Fluent Logic
+name:Breno Leitao -> Meta
+name:fdanis-oss -> Collabora
+name:raghu447 -> Collabora
+name:raghava447 -> Collabora
