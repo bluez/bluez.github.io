@@ -76,26 +76,13 @@ messages:
          permalink in markdown link format: `[title](https://lore.kernel.org/linux-bluetooth/MESSAGE_ID/)`.
          Use the message-id or link URL provided in the data.
 
-      2. **Bot classification**: The following are bots/CI and must NOT be counted
-         as human contributors:
-         - bluez.test.bot, BluezTestBot, patchwork-bot+bluetooth,
-           patchwork-bot+netdevbpf, kernel test robot, syzbot, bugzilla-daemon,
-           github-actions[bot], Sasha Levin (AUTOSEL), prathibhamadugonde (pushes)
-         - GitHub push notifications from humans (Luiz, hadess, etc.) DO count as human.
+      2. **Bot classification**: The input data already classifies each message as
+         HUMAN or BOT (resolved from `.github/mailmap/bots.mailmap`). Use these
+         labels directly. Do NOT count BOT messages as human contributions.
 
-      3. **Affiliations**: Infer affiliations from email domains and known contributors:
-         - @intel.com, luiz.dentz@gmail.com → Intel
-         - @hadess.net → Red Hat
-         - @qualcomm.com, @qti.qualcomm.com, @oss.qualcomm.com → Qualcomm
-         - @collabora.com → Collabora
-         - @google.com → Google
-         - @linaro.org → Linaro
-         - @baylibre.com → BayLibre
-         - @samsung.com → Samsung
-         - @debian.org → Debian/Meta (Breno Leitao)
-         - @fluentlogic.org, admin@fluentlogic.org → Fluent Logic (Martin Brodeur)
-         - @kernel.org → check context (could be independent maintainer)
-         - Others → Independent
+      3. **Affiliations**: The input data already includes a resolved affiliation
+         for each human contributor (resolved from `.github/mailmap/affiliations.mailmap`).
+         Use these affiliations directly. Do NOT infer or override them.
 
       4. **Accuracy**: Only report what the data shows. Do not fabricate threads,
          contributors, or statistics.

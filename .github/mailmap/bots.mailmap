@@ -1,0 +1,50 @@
+# Bot Classification Mailmap
+#
+# This file identifies automated/CI senders on the linux-bluetooth mailing
+# list.  The fetch-lore.sh script reads it at runtime so that new bots can
+# be added without touching code.
+#
+# Format:  One entry per non-comment, non-blank line.
+#          Each line is matched against the sender name OR email address
+#          (case-insensitive substring match).
+#
+#   name:<pattern>      — matches the display-name field
+#   email:<pattern>     — matches the email address field
+#
+# ------------------------------------------------------------------
+
+# BlueZ CI bots — automated test results posted to every PR/push
+name:bluez.test.bot
+name:BluezTestBot
+
+# Patchwork bots — auto-generated "applied" / "not-applicable" notifications
+# sent by the kernel patchwork instance when a patch changes state.
+email:patchwork-bot+bluetooth
+email:patchwork-bot+netdevbpf
+
+# Intel kernel test robot (0-day / LKP) — automated build/boot test results.
+name:kernel test robot
+email:lkp@intel.com
+
+# Google syzbot — kernel fuzzer that files automated bug reports.
+name:syzbot
+email:syzbot
+
+# Bugzilla daemon — automated notifications from bugzilla.kernel.org
+# whenever a bug is created, updated, or commented on.
+name:bugzilla-daemon
+email:bugzilla-daemon
+
+# GitHub Actions bot — CI status notifications on bluez/bluez pushes.
+name:github-actions[bot]
+
+# Sasha Levin AUTOSEL — automated stable-kernel backport selection.
+# Sasha maintains the stable queue and uses scripts that auto-generate
+# "[PATCH AUTOSEL ...]" emails; these are machine-picked, not hand-written
+# reviews, so they are counted as bot traffic.
+email:sashal@kernel.org
+
+# prathibhamadugonde — GitHub push notification account (not a person
+# posting patches or reviews; the actual patches come from Prathibha
+# Madugonde <prathm@qti.qualcomm.com> which is counted as human).
+name:prathibhamadugonde
