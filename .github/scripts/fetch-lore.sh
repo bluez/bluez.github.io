@@ -309,11 +309,14 @@ for name, count in sorted(human_counts.items(), key=lambda x: -x[1]):
 print()
 
 print("=== THREADS ===")
+# First, merge subjects that differ only by Re: prefix into the same thread
 seen_subjects = {}
 for e in entries:
     subj = e["subject"]
-    if subj not in seen_subjects:
-        seen_subjects[subj] = {
+    # Normalize: strip Re: prefix for grouping
+    norm_subj = re.sub(r"^(?:Re:\s*)+", "", subj, flags=re.IGNORECASE)
+    if norm_subj not in seen_subjects:
+        seen_subjects[norm_subj] = {
             "first_date": e["date"],
             "from": e["name"],
             "role": e["role"],
@@ -323,26 +326,140 @@ for e in entries:
             "participants": {e["name"]},
         }
     else:
-        seen_subjects[subj]["count"] += 1
-        seen_subjects[subj]["participants"].add(e["name"])
+        seen_subjects[norm_subj]["count"] += 1
+        seen_subjects[norm_subj]["participants"].add(e["name"])
+        # Keep the original poster's info (earliest date)
+        if e["date"] < seen_subjects[norm_subj]["first_date"]:
+            seen_subjects[norm_subj]["first_date"] = e["date"]
+            seen_subjects[norm_subj]["from"] = e["name"]
+            seen_subjects[norm_subj]["role"] = e["role"]
+            seen_subjects[norm_subj]["affiliation"] = e["affiliation"]
+            seen_subjects[norm_subj]["link"] = e["link"]
 
-# Only output human-initiated threads to reduce size, sorted by activity
-human_threads = [(subj, info) for subj, info in seen_subjects.items()
-                 if info["role"] == "HUMAN"]
-# Sort by message count (most active first), then by date
-human_threads.sort(key=lambda x: (-x[1]["count"], x[1]["first_date"]))
+# ---- Deduplicate patch series: keep only latest version ----
+# Group patches by series using message-id prefix patterns, then
+# collapse each series into one entry using the cover letter or
+# first patch as representative.
 
-# Limit to top 50 threads to keep output within token budget
-for subj, info in human_threads[:50]:
-    # Truncate subject to 80 chars
-    short_subj = subj[:80] + "..." if len(subj) > 80 else subj
-    # Shorten link to just message-id
-    link = info["link"]
+def parse_patch_meta(subj):
+    """Parse patch metadata from subject. Returns dict or None.
+    Returns None for Re: subjects (replies are not new submissions)."""
+    # Replies are discussion on existing threads, not new patches
+    if re.match(r"^Re:\s*", subj, re.IGNORECASE):
+        return None
+    m = re.match(r"\[([^\]]*)\]\s*(.+)", subj)
+    if not m:
+        return None
+    bracket = m.group(1)
+    topic = m.group(2).strip()
+    if not re.search(r"PATCH|RFC|BlueZ", bracket, re.IGNORECASE):
+        return None
+    vm = re.search(r"v(\d+)", bracket)
+    version = int(vm.group(1)) if vm else 1
+    nm = re.search(r"(\d+)/(\d+)", bracket)
+    patch_num = int(nm.group(1)) if nm else 0
+    total = int(nm.group(2)) if nm else 1
+    return {"topic": topic, "version": version, "patch_num": patch_num, "total": total}
+
+def extract_series_key(link):
+    """Extract a grouping key from the message-id to identify patches in same series."""
     msg_id = link.rstrip("/").split("/")[-1] if link else ""
-    print(f"- {short_subj} | {info['from']}({info['affiliation']}) | {info['count']}msgs | {msg_id}")
+    # Pattern: YYYYMMDD-slug-vN-PATCHNUM-HASH@domain -> group by YYYYMMDD-slug-vN
+    m = re.match(r"([\d]+-[^-]+-v\d+)-\d+-", msg_id)
+    if m:
+        return m.group(1)
+    # Pattern: YYYYMMDD-slug-vN-PATCHNUM-HASH@domain (longer slug)
+    m = re.match(r"(\d{8}-[\w_]+-v\d+)-", msg_id)
+    if m:
+        return m.group(1)
+    # git-format-patch: HASH.TIMESTAMP.git.user@domain or cover.TIMESTAMP.git.user@domain
+    m = re.match(r"(?:[0-9a-f]+|cover)\.(\d+)\.git\.(.+)", msg_id)
+    if m:
+        return f"git-{m.group(1)}-{m.group(2)}"
+    # Numbered series without version: YYYYMMDDHHMMSS.NNNNNN-N-user@domain
+    m = re.match(r"(\d{14}\.\d+-)\d+-", msg_id)
+    if m:
+        return m.group(1)
+    return None
 
-if len(human_threads) > 50:
-    print(f"\n(... and {len(human_threads) - 50} more threads with fewer messages)")
+from collections import defaultdict
+
+# Classify each thread as part of a series or standalone
+series_map = defaultdict(list)  # series_key -> [(subj, info, meta)]
+standalone = []
+
+for subj, info in seen_subjects.items():
+    # Skip GitHub push notifications entirely
+    msg_id = info["link"].rstrip("/").split("/")[-1] if info["link"] else ""
+    if "github.com" in msg_id:
+        continue
+    meta = parse_patch_meta(subj)
+    if meta:
+        series_key = extract_series_key(info["link"])
+        if series_key:
+            series_map[series_key].append((subj, info, meta))
+        else:
+            # Has patch format but no identifiable series key - standalone patch
+            series_map[f"solo-{subj}"].append((subj, info, meta))
+    else:
+        standalone.append((subj, info))
+
+# Collapse each series into one entry
+merged_threads = []
+for series_key, patches in series_map.items():
+    # Find latest version
+    max_version = max(p[2]["version"] for p in patches)
+    latest = [p for p in patches if p[2]["version"] == max_version]
+    # Total messages across ALL versions (for activity ranking)
+    total_msgs = sum(p[1]["count"] for p in patches)
+    # All participants
+    all_participants = set()
+    for p in patches:
+        all_participants.update(p[1]["participants"])
+    # Representative: cover letter (patch_num==0) or lowest patch number
+    cover = next((p for p in latest if p[2]["patch_num"] == 0), None)
+    rep = cover if cover else min(latest, key=lambda p: p[2]["patch_num"])
+    subj, info, meta = rep
+    merged_threads.append({
+        "subject": meta["topic"],
+        "from": info["from"],
+        "affiliation": info["affiliation"],
+        "role": info["role"],
+        "link": info["link"],
+        "count": total_msgs,
+        "version": max_version,
+        "patches": meta["total"],
+        "participants": all_participants,
+    })
+
+# Add standalone threads (exclude GitHub push notifications)
+for subj, info in standalone:
+    msg_id = info["link"].rstrip("/").split("/")[-1] if info["link"] else ""
+    if "github.com" in msg_id:
+        continue  # Skip push notifications - they're not discussions
+    merged_threads.append({
+        "subject": subj,
+        "from": info["from"],
+        "affiliation": info["affiliation"],
+        "role": info["role"],
+        "link": info["link"],
+        "count": info["count"],
+        "version": 0,
+        "patches": 0,
+        "participants": info["participants"],
+    })
+
+# Filter to human-initiated, sort by activity
+human_threads = [t for t in merged_threads if t["role"] == "HUMAN"]
+human_threads.sort(key=lambda x: (-x["count"], x["subject"]))
+
+for t in human_threads:
+    short_subj = t["subject"][:80] + "..." if len(t["subject"]) > 80 else t["subject"]
+    link = t["link"]
+    msg_id = link.rstrip("/").split("/")[-1] if link else ""
+    version_str = f" v{t['version']}" if t["version"] > 1 else ""
+    patches_str = f" {t['patches']}patches" if t["patches"] > 1 else ""
+    print(f"- {short_subj} | {t['from']}({t['affiliation']}) | {t['count']}msgs{version_str}{patches_str} | {msg_id}")
 PYTHON_SCRIPT
 
 cat "$WORKDIR"/feed_*.xml | python3 "$WORKDIR/parse.py" "$BOTS_MAILMAP" "$AFFILIATIONS_MAILMAP"
