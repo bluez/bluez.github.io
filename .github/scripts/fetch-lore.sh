@@ -467,6 +467,88 @@ for t in human_threads:
     version_str = f" v{t['version']}" if t["version"] > 1 else ""
     patches_str = f" {t['patches']}patches" if t["patches"] > 1 else ""
     print(f"- {short_subj} | {t['from']}({t['affiliation']}) | {t['count']}msgs{version_str}{patches_str} | {msg_id}")
+
+# ---------------------------------------------------------------------------
+# === APPLIED TO BLUETOOTH-NEXT ===
+# Detected from patchwork-bot+bluetooth notifications
+# ---------------------------------------------------------------------------
+print()
+print("=== APPLIED TO BLUETOOTH-NEXT ===")
+for e in entries:
+    if "patchwork-bot" in e["name"].lower() and "bluetooth" in e["name"].lower():
+        # Extract the patch title from subject (usually "Re: [PATCH...] title")
+        subj = e["subject"]
+        # Strip Re: and patch prefix to get clean title
+        clean = re.sub(r"^(?:Re:\s*)+", "", subj, flags=re.IGNORECASE)
+        clean = re.sub(r"^\[[^\]]*\]\s*", "", clean)
+        print(f"- {clean[:70]} | {e['date']}")
+
+# ---------------------------------------------------------------------------
+# === PUSHED TO BLUEZ MASTER ===
+# Detected from GitHub push notifications ([bluez/bluez] subjects)
+# ---------------------------------------------------------------------------
+print()
+print("=== PUSHED TO BLUEZ MASTER ===")
+push_entries = []
+for e in entries:
+    msg_id = e["link"].rstrip("/").split("/")[-1] if e["link"] else ""
+    if "github.com" in msg_id and e["role"] == "HUMAN":
+        # Subject format: "[bluez/bluez] hash: description"
+        subj = e["subject"]
+        push_entries.append((e["date"], e["name"], e["affiliation"], subj, msg_id))
+
+# Deduplicate by subject (same commit can appear in multiple push notifications)
+seen_pushes = set()
+for date, author, aff, subj, msg_id in sorted(push_entries):
+    # Extract commit description, strip [bluez/bluez] prefix and commit hash
+    clean = re.sub(r"^\[.*?\]\s*", "", subj)
+    clean = re.sub(r"^[0-9a-f]{6,7}:\s*", "", clean)
+    if clean in seen_pushes:
+        continue
+    seen_pushes.add(clean)
+    print(f"- {clean[:70]} | {author}({aff}) | {date}")
+
+# ---------------------------------------------------------------------------
+# === VERSION HISTORY ===
+# Show series that went through multiple versions this week
+# ---------------------------------------------------------------------------
+print()
+print("=== SERIES WITH MULTIPLE VERSIONS ===")
+# Collect all versions seen per series key
+all_series_versions = defaultdict(list)
+for e in entries:
+    subj = e["subject"]
+    if re.match(r"^Re:", subj, re.IGNORECASE):
+        continue
+    m = re.match(r"\[([^\]]*)\]\s*(.+)", subj)
+    if not m:
+        continue
+    bracket = m.group(1)
+    topic = m.group(2).strip()
+    if not re.search(r"PATCH|RFC|BlueZ", bracket, re.IGNORECASE):
+        continue
+    vm = re.search(r"v(\d+)", bracket)
+    version = int(vm.group(1)) if vm else 1
+    nm = re.search(r"(\d+)/(\d+)", bracket)
+    patch_num = int(nm.group(1)) if nm else 0
+    # Only track cover letters or single patches (not individual series patches)
+    if patch_num <= 1:
+        # Use topic as grouping key for version tracking
+        all_series_versions[topic].append({
+            "version": version,
+            "from": e["name"],
+            "affiliation": e["affiliation"],
+            "date": e["date"],
+            "link": e["link"],
+        })
+
+for topic, versions in sorted(all_series_versions.items()):
+    unique_versions = sorted(set(v["version"] for v in versions))
+    if len(unique_versions) > 1:
+        latest = max(versions, key=lambda v: v["version"])
+        msg_id = latest["link"].rstrip("/").split("/")[-1] if latest["link"] else ""
+        ver_str = "->".join(f"v{v}" for v in unique_versions)
+        print(f"- {topic[:70]} | {latest['from']}({latest['affiliation']}) | {ver_str} | {msg_id}")
 PYTHON_SCRIPT
 
 cat "$WORKDIR"/feed_*.xml | python3 "$WORKDIR/parse.py" "$BOTS_MAILMAP" "$AFFILIATIONS_MAILMAP"
