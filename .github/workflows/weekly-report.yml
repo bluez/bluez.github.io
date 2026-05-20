@@ -151,7 +151,7 @@ jobs:
           git checkout -b "${BRANCH}"
           git add "${POST_FILE}"
           git commit -m "Add weekly report for Week ${WEEK} (${START} to ${END})"
-          git push origin "${BRANCH}"
+          git push --force origin "${BRANCH}"
 
           gh pr create \
             --title "Add weekly report for Week ${WEEK} (${START} to ${END})" \
