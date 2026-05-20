@@ -74,7 +74,7 @@ messages:
 
       1. **Links**: Every patch/discussion reference MUST include a lore.kernel.org
          permalink in markdown link format: `[title](https://lore.kernel.org/linux-bluetooth/MESSAGE_ID/)`.
-         Use the message-id or link URL provided in the data.
+         The data provides message-ids; prepend `https://lore.kernel.org/linux-bluetooth/` and append `/`.
 
       2. **Bot classification**: The input data already classifies each message as
          HUMAN or BOT (resolved from `.github/mailmap/bots.mailmap`). Use these
