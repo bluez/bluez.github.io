@@ -315,6 +315,7 @@ for e in entries:
     subj = e["subject"]
     # Normalize: strip Re: prefix for grouping
     norm_subj = re.sub(r"^(?:Re:\s*)+", "", subj, flags=re.IGNORECASE)
+    is_original = (subj == norm_subj)  # Not a Re: message
     if norm_subj not in seen_subjects:
         seen_subjects[norm_subj] = {
             "first_date": e["date"],
@@ -324,10 +325,13 @@ for e in entries:
             "link": e["link"],
             "count": 1,
             "participants": {e["name"]},
+            "has_original": is_original,
         }
     else:
         seen_subjects[norm_subj]["count"] += 1
         seen_subjects[norm_subj]["participants"].add(e["name"])
+        if is_original:
+            seen_subjects[norm_subj]["has_original"] = True
         # Keep the original poster's info (earliest date)
         if e["date"] < seen_subjects[norm_subj]["first_date"]:
             seen_subjects[norm_subj]["first_date"] = e["date"]
@@ -392,6 +396,9 @@ for subj, info in seen_subjects.items():
     # Skip GitHub push notifications entirely
     msg_id = info["link"].rstrip("/").split("/")[-1] if info["link"] else ""
     if "github.com" in msg_id:
+        continue
+    # Skip threads that only have Re: replies (no original post this week)
+    if not info.get("has_original"):
         continue
     meta = parse_patch_meta(subj)
     if meta:
