@@ -318,7 +318,6 @@ for e in entries:
             "from": e["name"],
             "role": e["role"],
             "affiliation": e["affiliation"],
-            "msg_id": e["msg_id"],
             "link": e["link"],
             "count": 1,
             "participants": {e["name"]},
@@ -327,21 +326,23 @@ for e in entries:
         seen_subjects[subj]["count"] += 1
         seen_subjects[subj]["participants"].add(e["name"])
 
-for subj, info in sorted(seen_subjects.items(), key=lambda x: x[1]["first_date"]):
-    participants = ", ".join(sorted(info["participants"]))
-    print(f"Date: {info['first_date']}")
-    print(f"Subject: {subj}")
-    print(f"From: {info['from']}")
-    print(f"Affiliation: {info['affiliation']}")
-    print(f"Messages: {info['count']}")
-    print(f"Participants: {participants}")
-    print(f"Link: {info['link']}")
-    print(f"Message-ID: {info['msg_id']}")
-    print()
+# Only output human-initiated threads to reduce size, sorted by activity
+human_threads = [(subj, info) for subj, info in seen_subjects.items()
+                 if info["role"] == "HUMAN"]
+# Sort by message count (most active first), then by date
+human_threads.sort(key=lambda x: (-x[1]["count"], x[1]["first_date"]))
 
-print("=== ALL MESSAGES ===")
-for e in entries:
-    print(f"{e['date']}\t{e['time']}\t{e['name']}\t{e['role']}\t{e['affiliation']}\t{e['subject']}\t{e['link']}")
+# Limit to top 50 threads to keep output within token budget
+for subj, info in human_threads[:50]:
+    # Truncate subject to 80 chars
+    short_subj = subj[:80] + "..." if len(subj) > 80 else subj
+    # Shorten link to just message-id
+    link = info["link"]
+    msg_id = link.rstrip("/").split("/")[-1] if link else ""
+    print(f"- {short_subj} | {info['from']}({info['affiliation']}) | {info['count']}msgs | {msg_id}")
+
+if len(human_threads) > 50:
+    print(f"\n(... and {len(human_threads) - 50} more threads with fewer messages)")
 PYTHON_SCRIPT
 
 cat "$WORKDIR"/feed_*.xml | python3 "$WORKDIR/parse.py" "$BOTS_MAILMAP" "$AFFILIATIONS_MAILMAP"
