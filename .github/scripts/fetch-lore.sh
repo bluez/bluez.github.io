@@ -473,15 +473,21 @@ for t in human_threads:
 # Detected from patchwork-bot+bluetooth notifications
 # ---------------------------------------------------------------------------
 print()
-print("=== APPLIED TO BLUETOOTH-NEXT ===")
+print("=== APPLIED (patchwork-bot notifications) ===")
 for e in entries:
     if "patchwork-bot" in e["name"].lower() and "bluetooth" in e["name"].lower():
-        # Extract the patch title from subject (usually "Re: [PATCH...] title")
         subj = e["subject"]
-        # Strip Re: and patch prefix to get clean title
         clean = re.sub(r"^(?:Re:\s*)+", "", subj, flags=re.IGNORECASE)
         clean = re.sub(r"^\[[^\]]*\]\s*", "", clean)
-        print(f"- {clean[:70]} | {e['date']}")
+        # Classify as kernel or BlueZ based on title patterns
+        # Kernel patches typically start with "Bluetooth:" subsystem prefix
+        is_kernel = bool(re.match(
+            r"(Bluetooth:|net:|dt-bindings:|arm64:|power:|block:|sdio:|mmc:)",
+            clean, re.IGNORECASE))
+        category = "kernel" if is_kernel else "BlueZ"
+        # Include the in-reply-to link for the original patch
+        msg_id = e["link"].rstrip("/").split("/")[-1] if e["link"] else ""
+        print(f"- [{category}] {clean[:70]} | {e['date']} | {msg_id}")
 
 # ---------------------------------------------------------------------------
 # === PUSHED TO BLUEZ MASTER ===
@@ -506,7 +512,7 @@ for date, author, aff, subj, msg_id in sorted(push_entries):
     if clean in seen_pushes:
         continue
     seen_pushes.add(clean)
-    print(f"- {clean[:70]} | {author}({aff}) | {date}")
+    print(f"- {clean[:70]} | {author}({aff}) | {date} | {msg_id}")
 
 # ---------------------------------------------------------------------------
 # === VERSION HISTORY ===

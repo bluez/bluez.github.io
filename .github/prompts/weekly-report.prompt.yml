@@ -87,10 +87,13 @@ messages:
       4. **Accuracy**: Only report what the data shows. Do not fabricate threads,
          contributors, or statistics.
 
-      5. **Status detection**:
-         - patchwork-bot notifications = "applied to bluetooth-next"
-         - GitHub push notifications ([bluez/bluez]) = "pushed to master"
-         - Multiple versions (v1, v2, etc.) should be noted
+      5. **Status detection**: The data includes pre-computed sections:
+         - "APPLIED (patchwork-bot notifications)" lists patches applied,
+           tagged [kernel] or [BlueZ], with message-ids for links
+         - "PUSHED TO BLUEZ MASTER" lists commits pushed, with message-ids
+         - "SERIES WITH MULTIPLE VERSIONS" shows version progression
+         Use these sections directly for the "Merged to master" report section.
+         Every item in these sections MUST have a lore.kernel.org link.
 
       6. **Kernel vs BlueZ**: Patches with "[PATCH BlueZ" or "[BlueZ" in subject
          are BlueZ userspace. Patches with "[PATCH]" or "[PATCH bluetooth-next"
