@@ -39,14 +39,13 @@ jobs:
             END="${{ inputs.end_date }}"
           else
             # Previous week: Monday to Sunday
+            # DOW: 1=Monday ... 7=Sunday
             DOW=$(date +%u)
-            DAYS_SINCE_MON=$(( DOW - 1 ))
-            if [ "$DAYS_SINCE_MON" -eq 0 ]; then
-              DAYS_SINCE_MON=7
-            fi
-            LAST_MON=$(( DAYS_SINCE_MON + 7 ))
-            START=$(date -d "-${LAST_MON} days" +%Y-%m-%d)
-            END=$(date -d "-${DAYS_SINCE_MON} days" +%Y-%m-%d)
+            # Last Sunday was DOW days ago
+            DAYS_TO_SUN=${DOW}
+            DAYS_TO_MON=$(( DOW + 6 ))
+            START=$(date -d "-${DAYS_TO_MON} days" +%Y-%m-%d)
+            END=$(date -d "-${DAYS_TO_SUN} days" +%Y-%m-%d)
           fi
 
           WEEK_NUM=$(date -d "$START" +%V)
