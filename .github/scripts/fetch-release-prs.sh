@@ -128,10 +128,14 @@ CATEGORIZED=$(echo "$ALL_PRS" | jq -r '
             else "Other"
             end
         )
-    ] | group_by(.category) | sort_by(.[0].category) | .[] |
+    ] |
+    # Deduplicate: group by clean_title, keep only the highest PR number (latest revision)
+    group_by(.clean_title) | [.[] | sort_by(.number) | last] |
+    # Now group by category
+    group_by(.category) | sort_by(.[0].category) | .[] |
     {
         category: .[0].category,
-        prs: [.[] | {number, title: .clean_title}]
+        prs: [.[] | {number, title: .clean_title}] | sort_by(.number)
     }
 ' | jq -s '.')
 
