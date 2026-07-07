@@ -1,0 +1,188 @@
+name: Generate Release Notes
+
+on:
+  # Triggered via repository_dispatch from bluez/bluez or manually
+  repository_dispatch:
+    types: [new-release]
+
+  # Allow manual trigger with tag override
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g., 5.87)'
+        required: true
+      previous_tag:
+        description: 'Previous release tag (auto-detected if empty)'
+        required: false
+      model:
+        description: 'AI model to use'
+        required: false
+        default: 'openai/gpt-4o'
+
+permissions:
+  contents: write
+  pull-requests: write
+  models: read
+
+jobs:
+  generate-release-notes:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Determine tags
+        id: tags
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get the new tag from dispatch event or manual input
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            NEW_TAG="${{ github.event.client_payload.tag }}"
+          else
+            NEW_TAG="${{ inputs.tag }}"
+          fi
+
+          if [ -z "$NEW_TAG" ]; then
+            echo "::error::No tag specified"
+            exit 1
+          fi
+
+          # Determine previous tag if not provided
+          PREV_TAG="${{ inputs.previous_tag }}"
+          if [ -z "$PREV_TAG" ]; then
+            # Parse version number and decrement
+            MAJOR=$(echo "$NEW_TAG" | cut -d. -f1)
+            MINOR=$(echo "$NEW_TAG" | cut -d. -f2)
+            PREV_MINOR=$((MINOR - 1))
+            PREV_TAG="${MAJOR}.${PREV_MINOR}"
+          fi
+
+          echo "new_tag=${NEW_TAG}" >> "$GITHUB_OUTPUT"
+          echo "previous_tag=${PREV_TAG}" >> "$GITHUB_OUTPUT"
+          echo "Tags: ${PREV_TAG} -> ${NEW_TAG}"
+
+      - name: Fetch PR data
+        id: fetch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          chmod +x .github/scripts/fetch-release-prs.sh
+          .github/scripts/fetch-release-prs.sh \
+            "${{ steps.tags.outputs.previous_tag }}" \
+            "${{ steps.tags.outputs.new_tag }}" \
+            > pr_data.txt 2>fetch.log
+
+          cat fetch.log
+          echo ""
+          echo "Data size: $(wc -l < pr_data.txt) lines, $(wc -c < pr_data.txt) bytes"
+
+          if [ ! -s pr_data.txt ]; then
+            echo "::error::No PR data collected"
+            exit 1
+          fi
+
+          # Extract dates from the PR data
+          START_DATE=$(grep "^\\*\\*Period\\*\\*:" pr_data.txt | sed 's/.*: //' | cut -d' ' -f1)
+          END_DATE=$(grep "^\\*\\*Period\\*\\*:" pr_data.txt | sed 's/.* to //')
+          echo "start_date=${START_DATE}" >> "$GITHUB_OUTPUT"
+          echo "end_date=${END_DATE}" >> "$GITHUB_OUTPUT"
+
+      - name: Generate release notes with AI
+        id: inference
+        uses: actions/ai-inference@v2
+        with:
+          prompt-file: '.github/prompts/release-notes.prompt.yml'
+          model: ${{ inputs.model || 'openai/gpt-4o' }}
+          max-completion-tokens: 16000
+          temperature: 0.3
+          input: |
+            new_tag: ${{ steps.tags.outputs.new_tag }}
+            previous_tag: ${{ steps.tags.outputs.previous_tag }}
+            start_date: ${{ steps.fetch.outputs.start_date }}
+            end_date: ${{ steps.fetch.outputs.end_date }}
+          file_input: |
+            pr_data: ./pr_data.txt
+
+      - name: Create Hugo post and prepare release
+        id: post
+        run: |
+          NEW_TAG="${{ steps.tags.outputs.new_tag }}"
+          PREV_TAG="${{ steps.tags.outputs.previous_tag }}"
+          RESPONSE_FILE="${{ steps.inference.outputs.response-file }}"
+          YEAR=$(date +%Y)
+          TODAY=$(date +%Y-%m-%d)
+          POST_DIR="content/news/${YEAR}"
+          POST_FILE="${POST_DIR}/bluez-${NEW_TAG//\./-}-release.md"
+
+          mkdir -p "${POST_DIR}"
+
+          # Read the AI-generated release notes
+          BODY=$(cat "$RESPONSE_FILE")
+
+          # Build the Hugo post
+          cat > "${POST_FILE}" << FRONTMATTER
+          ---
+          title: "Release of BlueZ ${NEW_TAG}"
+          date: ${TODAY}
+          summary: "BlueZ ${NEW_TAG} has been released with improvements and bug fixes."
+          draft: false
+          ---
+          FRONTMATTER
+
+          # Remove leading spaces from heredoc
+          sed -i 's/^          //' "${POST_FILE}"
+
+          # Append the release notes body
+          echo "" >> "${POST_FILE}"
+          echo "$BODY" >> "${POST_FILE}"
+
+          # Also save the raw release notes for the GitHub release
+          cp "$RESPONSE_FILE" release_notes.md
+
+          echo "post_file=${POST_FILE}" >> "$GITHUB_OUTPUT"
+          echo "branch=release-${NEW_TAG}" >> "$GITHUB_OUTPUT"
+          echo "Created: ${POST_FILE}"
+
+      - name: Create Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          NEW_TAG="${{ steps.tags.outputs.new_tag }}"
+          PREV_TAG="${{ steps.tags.outputs.previous_tag }}"
+          BRANCH="${{ steps.post.outputs.branch }}"
+          POST_FILE="${{ steps.post.outputs.post_file }}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git checkout -b "${BRANCH}"
+          git add "${POST_FILE}"
+          git commit -m "Add release notes for BlueZ ${NEW_TAG}"
+          git push --force origin "${BRANCH}"
+
+          gh pr create \
+            --title "Add release notes for BlueZ ${NEW_TAG}" \
+            --body "$(cat <<EOF
+          ## Release Notes - BlueZ ${NEW_TAG}
+
+          Auto-generated release notes for BlueZ ${NEW_TAG}.
+
+          - **Changelog**: [${PREV_TAG}...${NEW_TAG}](https://github.com/bluez/bluez/compare/${PREV_TAG}...${NEW_TAG})
+          - **Generated by**: actions/ai-inference with $(echo '${{ inputs.model || 'openai/gpt-4o' }}')
+          - **Data source**: GitHub PRs merged between releases
+
+          The file \`release_notes.md\` in the workflow artifacts contains the raw
+          release notes suitable for pasting into a GitHub Release.
+
+          > **Note**: This was AI-generated and should be reviewed before merging.
+          EOF
+          )" \
+            --base main \
+            --head "${BRANCH}"
+
+      - name: Upload release notes artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-notes-${{ steps.tags.outputs.new_tag }}
+          path: release_notes.md
