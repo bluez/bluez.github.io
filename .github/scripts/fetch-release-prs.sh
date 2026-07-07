@@ -55,7 +55,7 @@ ALL_PRS="[]"
 while true; do
     QUERY="repo:${REPO}+is:pr+is:closed+closed:${PREV_DATE}..${NEW_DATE}"
     RESULT=$(gh api "search/issues?q=${QUERY}&per_page=${PER_PAGE}&page=${PAGE}&sort=created&order=asc" \
-        --jq '[.items[] | {number, title, user: .user.login, closed_at: .closed_at, labels: [.labels[].name], body: ((.body // "")[0:500])}]' 2>/dev/null || echo "[]")
+        --jq '[.items[] | {number, title, user: .user.login, closed_at: .closed_at, labels: [.labels[].name]}]' 2>/dev/null || echo "[]")
 
     if [ "$RESULT" = "[]" ] || [ -z "$RESULT" ]; then
         break
@@ -113,13 +113,13 @@ echo ""
 echo "## Patchwork PRs (Applied Patches)"
 echo ""
 
-echo "$PW_PRS" | jq -r 'sort_by(.number) | .[] | {number, title: (.title | gsub("\\[PW_SID:[0-9]+\\] "; "")), user: .user, closed_at, labels, body} | "### PR #\(.number): \(.title)\n- **Author**: @\(.user)\n- **Closed**: \(.closed_at)\n- **Labels**: \(.labels | join(", "))\n- **Description**: \(.body | gsub("\n"; " ") | .[0:300])\n"'
+echo "$PW_PRS" | jq -r 'sort_by(.number) | .[] | {number, title: (.title | gsub("\\[PW_SID:[0-9]+\\] "; "")), user: .user, closed_at, labels} | "- **\(.title)** ([#\(.number)](https://github.com/bluez/bluez/pull/\(.number))) - @\(.user) [\(.labels | join(", "))]"'
 
 if [ "$OTHER_COUNT" -gt 0 ]; then
     echo ""
     echo "## Other PRs"
     echo ""
-    echo "$OTHER_PRS" | jq -r 'sort_by(.number) | .[] | "### PR #\(.number): \(.title)\n- **Author**: @\(.user)\n- **Closed**: \(.closed_at)\n- **Labels**: \(.labels | join(", "))\n- **Description**: \(.body | gsub("\n"; " ") | .[0:300])\n"'
+    echo "$OTHER_PRS" | jq -r 'sort_by(.number) | .[] | "- **\(.title)** ([#\(.number)](https://github.com/bluez/bluez/pull/\(.number))) - @\(.user) [\(.labels | join(", "))]"'
 fi
 
 echo ""
