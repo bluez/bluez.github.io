@@ -1,4 +1,6 @@
 # Hugo's output directory
 public/
+# Hugo's generated resource cache
+resources/_gen/
 # Hugo's build lock
 .hugo_build.lock

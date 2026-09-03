@@ -98,6 +98,11 @@ Write the article body in Markdown below the front matter. Fenced code blocks ar
 
 Place news images in `assets/images/news/` and reference them by filename in the front matter fields above.
 
+`hugo.toml` is the single configuration point for automatic card images:
+
+- `defaultNewsImage` is used by articles without an `image` value.
+- `weeklyReportImages` is the ordered, circular list used for weekly reports. Add, remove, or rename entries to change the rotation and its count.
+
 ---
 
 ## Deployment

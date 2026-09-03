@@ -95,6 +95,7 @@ jobs:
           title: "Release of BlueZ ${NEW_TAG}"
           date: ${TODAY}
           summary: "BlueZ ${NEW_TAG} has been released with improvements and bug fixes."
+          image: "images/news/release.png"
           draft: false
           ---
           FRONTMATTER

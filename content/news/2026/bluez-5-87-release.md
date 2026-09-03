@@ -2,6 +2,7 @@
 title: "Release of BlueZ 5.87"
 date: 2026-07-07
 summary: "BlueZ 5.87 has been released with improvements and bug fixes."
+image: "images/news/release.png"
 draft: false
 ---
 
