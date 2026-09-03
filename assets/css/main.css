@@ -106,6 +106,9 @@ ul {
   background-image: var(--header-curve-url);
   background-repeat: no-repeat;
   background-position: top center;
+  /* Matches the curve's native 1712:41.5 ratio, so it renders as it would at "auto" */
+  background-size: 100% var(--header-curve-depth, 2.424vw);
+  transition: background-size 0.3s ease-in-out;
 }
 
 .site-header-scrolled {
@@ -119,11 +122,13 @@ ul {
   justify-content: center;
   position: relative;
   height: 64px;
+  transition: height 0.3s ease-in-out;
 }
 
 .header-logo img {
   width: 180px;
   height: auto;
+  transition: width 0.3s ease-in-out;
 }
 
 @media only screen and (max-width: 1200px) {
@@ -151,6 +156,24 @@ ul {
   .site-header {
     padding: 30px 0 20px;
   }
+}
+
+/* Shrink the header once the page is scrolled. The curve is flattened as well, so the
+   gap above the logo can shrink by the same proportion and the balance is preserved.
+   Must stay after the blocks above so it wins on equal specificity. */
+.site-header-scrolled {
+  --header-curve-depth: max(8px, 1.3vw);
+  padding-top: 20px;
+  padding-bottom: 0;
+}
+.site-header-scrolled::after {
+  margin-top: 0;
+}
+.site-header-scrolled .header-inner {
+  height: 44px;
+}
+.site-header-scrolled .header-logo img {
+  width: 105px;
 }
 
 /* ========================================
