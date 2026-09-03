@@ -1,0 +1,31 @@
+{{- $page := . -}}
+{{- $imagePath := $page.Params.image -}}
+{{- if not $imagePath -}}
+  {{- if hasPrefix $page.File.BaseFileName "weekly-report-w" -}}
+    {{- $weeklyReportImages := $page.Site.Params.weeklyReportImages -}}
+    {{- if gt (len $weeklyReportImages) 0 -}}
+      {{- $week := int (replaceRE "^0+" "" (replace $page.File.BaseFileName "weekly-report-w" "")) -}}
+      {{- $imagePath = index $weeklyReportImages (mod (sub $week 1) (len $weeklyReportImages)) -}}
+    {{- else -}}
+      {{- $imagePath = $page.Site.Params.defaultNewsImage -}}
+    {{- end -}}
+  {{- else -}}
+    {{- $imagePath = $page.Site.Params.defaultNewsImage -}}
+  {{- end -}}
+{{- end -}}
+{{- $img := resources.Get $imagePath -}}
+<div class="news-card-image">
+  {{- with $img }}
+    {{- $small := .Resize "500x webp q82" -}}
+    {{- $large := .Resize "1000x webp q82" -}}
+    <img
+      src="{{ $small.RelPermalink }}"
+      srcset="{{ $small.RelPermalink }} {{ $small.Width }}w, {{ $large.RelPermalink }} {{ $large.Width }}w"
+      sizes="(max-width: 640px) calc(100vw - 80px), 33vw"
+      width="{{ $large.Width }}"
+      height="{{ $large.Height }}"
+      alt=""
+      loading="lazy"
+      decoding="async">
+  {{- end }}
+</div>
