@@ -6,7 +6,7 @@ columns:
     icon: "github"
   - heading: "Mailing list"
     description: "The parts of the Linux Bluetooth stack are written by many people and it is not the job of just one single person. If you want to get in contact with the developers, please join the developer mailing list and never write to them directly."
-    url: "https://subspace.kernel.org/vger.kernel.org.html#linux-bluetooth"
+    url: "/mailing-list/"
     link_text: "Subscribe to the linux-bluetooth mailing list"
     icon: "mail"
   - heading: "Slack"

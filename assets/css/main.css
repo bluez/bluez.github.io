@@ -10,6 +10,8 @@
   --color-grey: #333333;
   --color-white: #ffffff;
   --color-light-grey-bg: #f0f0f0;
+  --color-border: #eaeaea;
+  --color-blue-tint: #eef3ff;
 
   --gradient-blue: linear-gradient(180deg, var(--color-light-blue) 0%, var(--color-dark-blue) 100%);
 
@@ -1037,12 +1039,12 @@ a.footer-link-action:hover {
   color: var(--color-black);
 }
 
-.newsIndexLoadMoreWrapper {
+.pageActionWrapper {
   width: 100%;
   margin: 100px 0 0;
   position: relative;
 }
-.newsIndexLoadMoreWrapper a {
+.pageActionWrapper a {
   font-size: 16px;
   font-weight: 700;
   color: var(--color-black);
@@ -1056,7 +1058,7 @@ a.footer-link-action:hover {
   transition: all 0.3s ease-in-out;
   text-decoration: none;
 }
-.newsIndexLoadMoreWrapper a::after {
+.pageActionWrapper a::after {
   content: '';
   width: 100%;
   border-top: 1px solid #eaeaea;
@@ -1065,7 +1067,7 @@ a.footer-link-action:hover {
   left: 0;
   top: 28px;
 }
-.newsIndexLoadMoreWrapper a:hover {
+.pageActionWrapper a:hover {
   background-color: var(--color-dark-blue);
   color: #fff;
   text-decoration: none;
@@ -1122,11 +1124,15 @@ a.footer-link-action:hover {
 }
 
 /* ========================================
-  14. NEWS ARTICLE (single page)
+  14. ARTICLE BODY (content single pages)
   ======================================== */
 
-.newsArticleBody {
+.articleBody {
   padding: 0 10%;
+}
+/* Pages with no date header need to supply that spacing themselves */
+.articleBody-noMeta {
+  padding-top: 70px;
 }
 .newsArticleDateWrapper {
   margin: 30px 0 40px;
@@ -1136,53 +1142,65 @@ a.footer-link-action:hover {
 .newsArticleDateWrapper p {
   font-size: 15px;
 }
-.newsArticleBody .heroIMG {
+.articleBody .heroIMG {
   width: 100%;
   height: auto;
   margin-bottom: 40px;
 }
-.newsArticleBody .heroIMG img {
+.articleBody .heroIMG img {
   width: 100%;
   height: auto;
   display: block;
 }
 
 /* Article typography */
-.newsArticleBody p,
-.newsArticleBody li {
+.articleBody p,
+.articleBody li {
   line-height: 150%;
 }
-.newsArticleBody hr {
+.articleBody hr {
   margin: 25px 0;
   border: none;
   border-top: 1px solid #eaeaea;
 }
-.newsArticleBody h1,
-.newsArticleBody h2,
-.newsArticleBody h3,
-.newsArticleBody h4,
-.newsArticleBody h5,
-.newsArticleBody h6 {
+.articleBody h1,
+.articleBody h2,
+.articleBody h3,
+.articleBody h4,
+.articleBody h5,
+.articleBody h6 {
   line-height: 130%;
   margin: 25px 0 10px;
   padding: 0;
 }
-.newsArticleBody ul,
-.newsArticleBody ol {
+.articleBody ul,
+.articleBody ol {
   margin-left: 15px;
   margin-bottom: 15px;
 }
-.newsArticleBody li {
+.articleBody li {
   padding-left: 15px;
   margin-bottom: 4px;
 }
-.newsArticleBody blockquote {
+.articleBody blockquote {
   border-left: 3px solid var(--color-dark-blue);
   margin-left: 0;
   padding: 10px 0 10px 30px;
   color: var(--color-light-blue);
 }
-.newsArticleBody code {
+.articleBody .calloutNote {
+  border-left: 5px solid var(--color-dark-blue);
+  background: var(--color-blue-tint);
+  padding: 20px 30px;
+  margin: 0 0 35px;
+}
+.articleBody .calloutNote p {
+  margin: 0;
+}
+.articleBody .calloutNote a {
+  font-weight: 700;
+}
+.articleBody code {
   display: inline-block;
   font-family: "Source Code Pro", Courier, 'Courier New', monospace;
   font-weight: 500;
@@ -1190,7 +1208,7 @@ a.footer-link-action:hover {
   line-height: 150%;
   max-width: 100%;
 }
-.newsArticleBody code span {
+.articleBody code span {
   font-size: 14px;
   line-height: 140%;
   margin-bottom: 7px;
@@ -1199,16 +1217,16 @@ a.footer-link-action:hover {
 }
 
 /* Fenced code blocks (Hugo/Chroma output: .highlight > pre > code) */
-.newsArticleBody .highlight {
+.articleBody .highlight {
   margin-bottom: 1em;
 }
-.newsArticleBody .highlight pre {
+.articleBody .highlight pre {
   padding: 20px;
   border: 1px solid #eaeaea;
   margin: 0;
   overflow-x: auto;
 }
-.newsArticleBody pre {
+.articleBody pre {
   font-family: "Source Code Pro", Courier, 'Courier New', monospace;
   font-size: 14px;
   line-height: 150%;
@@ -1217,14 +1235,14 @@ a.footer-link-action:hover {
   overflow-x: auto;
   margin: 0 0 1em;
 }
-.newsArticleBody pre code {
+.articleBody pre code {
   display: block;
   font-size: 14px;
   line-height: 150%;
 }
 
 /* Cite element (appears after blockquotes) */
-.newsArticleBody cite {
+.articleBody cite {
   display: block;
   font-style: italic;
   font-size: 14px;
@@ -1236,19 +1254,22 @@ a.footer-link-action:hover {
 
 /* Article responsive */
 @media only screen and (max-width: 1250px) {
-  .newsArticleBody {
+  .articleBody {
     padding: 0 5%;
   }
 }
 @media only screen and (max-width: 1000px) {
-  .newsArticleBody {
+  .articleBody {
     padding: 0 3%;
   }
-  .newsArticleBody p,
-  .newsArticleBody li {
+  .articleBody-noMeta {
+    padding-top: 50px;
+  }
+  .articleBody p,
+  .articleBody li {
     font-size: 15px;
   }
-  .newsArticleBody .heroIMG {
+  .articleBody .heroIMG {
     margin-bottom: 30px;
   }
   .newsArticleDateWrapper {
@@ -1259,7 +1280,7 @@ a.footer-link-action:hover {
   }
 }
 @media only screen and (max-width: 800px) {
-  .newsArticleBody .heroIMG img {
+  .articleBody .heroIMG img {
     width: calc(100% + 60px + 8%);
     position: relative;
     left: calc(-30px - 4%);
@@ -1268,23 +1289,30 @@ a.footer-link-action:hover {
   .newsArticleDateWrapper {
     margin: 20px 0 25px;
   }
-  .newsArticleBody code span {
+  .articleBody code span {
     font-size: 13px;
   }
-  .newsArticleBody .highlight pre,
-  .newsArticleBody pre {
+  .articleBody .highlight pre,
+  .articleBody pre {
     padding: 15px;
     font-size: 13px;
   }
-  .newsArticleBody pre code {
+  .articleBody pre code {
     font-size: 13px;
   }
 }
 @media only screen and (max-width: 650px) {
-  .newsArticleBody {
+  .articleBody {
     padding: 0 2%;
   }
-  .newsArticleBody .heroIMG {
+  .articleBody-noMeta {
+    padding-top: 40px;
+  }
+  .articleBody .calloutNote {
+    padding: 15px 20px;
+    margin-bottom: 25px;
+  }
+  .articleBody .heroIMG {
     margin-bottom: 25px;
   }
   .newsArticleDateWrapper {
@@ -1293,7 +1321,7 @@ a.footer-link-action:hover {
   .newsArticleDateWrapper p {
     font-size: 13px;
   }
-  .newsArticleBody .heroIMG img {
+  .articleBody .heroIMG img {
     width: calc(150% + 60px + 4%);
     position: relative;
     left: calc(-30px - 2% - 25%);
@@ -1301,32 +1329,35 @@ a.footer-link-action:hover {
   main {
     overflow-x: hidden;
   }
-  .newsArticleBody ul,
-  .newsArticleBody ol {
+  .articleBody ul,
+  .articleBody ol {
     margin-left: 10px;
     margin-bottom: 15px;
   }
-  .newsArticleBody li {
+  .articleBody li {
     padding-left: 10px;
   }
 }
 @media only screen and (max-width: 450px) {
-  .newsArticleBody {
+  .articleBody {
     padding: 0;
   }
-  .newsArticleBody p,
-  .newsArticleBody li {
+  .articleBody-noMeta {
+    padding-top: 35px;
+  }
+  .articleBody p,
+  .articleBody li {
     font-size: 14px;
   }
   .newsArticleDateWrapper {
     margin: 15px 0 20px;
   }
-  .newsArticleBody ul,
-  .newsArticleBody ol {
+  .articleBody ul,
+  .articleBody ol {
     margin-left: 8px;
     margin-bottom: 15px;
   }
-  .newsArticleBody li {
+  .articleBody li {
     padding-left: 8px;
   }
 }
@@ -1352,7 +1383,7 @@ a.footer-link-action:hover {
   background: #fff;
 }
 
-.newsIndexLoadMoreWrapper.backToNewsBtnWrapper {
+.pageActionWrapper.backLinkWrapper {
   margin-top: 75px;
   margin-bottom: 60px;
 }
@@ -1363,4 +1394,58 @@ a.footer-link-action:hover {
 
 html {
   scroll-behavior: smooth;
+}
+
+/* ========================================
+  17. MAILING LIST INFO
+  ======================================== */
+
+.mailingListInfo {
+  border: 1px solid var(--color-border);
+  background: var(--color-light-grey-bg);
+  padding: 8px 30px;
+  margin-bottom: 2rem;
+}
+
+.mailingListInfo dl {
+  margin: 0;
+}
+
+.mailingListInfo-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.mailingListInfo-row:last-child {
+  border-bottom: none;
+}
+
+.mailingListInfo-row dt {
+  flex: 0 0 160px;
+  font-weight: 700;
+  color: var(--color-black);
+}
+
+.mailingListInfo-row dd {
+  flex: 1 1 300px;
+  margin: 0;
+  color: var(--color-grey);
+}
+
+.mailingListInfo-row code {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  padding: 2px 6px;
+}
+
+@media only screen and (max-width: 640px) {
+  .mailingListInfo {
+    padding: 4px 20px;
+  }
+  .mailingListInfo-row dt {
+    flex-basis: 100%;
+  }
 }

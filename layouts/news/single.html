@@ -7,7 +7,7 @@
       </div>
     </section>
 
-    <section class="newsArticleBody">
+    <section class="articleBody">
       <div class="container">
         <div class="newsArticleDateWrapper">
           <p>{{ .Date.Format "2 January 2006" }}</p>
@@ -24,7 +24,7 @@
 
         {{ .Content }}
 
-        <div class="newsIndexLoadMoreWrapper backToNewsBtnWrapper">
+        <div class="pageActionWrapper backLinkWrapper">
           <a href="{{ "news/" | relURL }}" title="Back to News">Back to news</a>
         </div>
       </div>
