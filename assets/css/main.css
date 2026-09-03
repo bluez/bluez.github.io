@@ -108,12 +108,9 @@ ul {
   background-position: top center;
   /* Matches the curve's native 1712:41.5 ratio, so it renders as it would at "auto" */
   background-size: 100% var(--header-curve-depth, 2.424vw);
-  transition: background-size 0.3s ease-in-out;
-}
-
-.site-header-scrolled {
-  filter: drop-shadow(0px 8px 8px rgb(0 0 0 / 0.1));
-  transition: all 0.3s ease-in-out;
+  transition:
+    background-size 0.3s ease-in-out,
+    margin-top 0.3s ease-in-out;
 }
 
 .header-inner {
@@ -165,6 +162,8 @@ ul {
   --header-curve-depth: max(8px, 1.3vw);
   padding-top: 20px;
   padding-bottom: 0;
+  filter: drop-shadow(0px 8px 8px rgb(0 0 0 / 0.1));
+  transition: all 0.3s ease-in-out;
 }
 .site-header-scrolled::after {
   margin-top: 0;
