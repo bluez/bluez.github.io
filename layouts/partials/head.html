@@ -1,7 +1,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ .Site.Title }}</title>
-<meta name="description" content="{{ .Site.Params.description }}">
+<title>{{ if .IsHome }}{{ .Site.Title }}{{ else }}{{ .Title }} | {{ .Site.Title }}{{ end }}</title>
+<meta name="description" content="{{ or .Description .Params.summary .Site.Params.description }}">
 
 {{/* CSS via Hugo Pipes */}}
 {{ $css := resources.Get "css/main.css" | minify | fingerprint }}

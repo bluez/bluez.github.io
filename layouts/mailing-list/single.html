@@ -1,0 +1,60 @@
+{{ define "main" }}
+  {{- partial "header.html" . -}}
+  <main>
+    <section class="hero contentHero">
+      <div class="container">
+        <h1>{{ .Title }}</h1>
+      </div>
+    </section>
+
+    <section class="articleBody articleBody-noMeta">
+      <div class="container">
+        {{ .Content }}
+
+        <div class="mailingListInfo">
+          <dl>
+            <div class="mailingListInfo-row">
+              <dt>List address</dt>
+              <dd><code>{{ .Params.list_address }}</code></dd>
+            </div>
+            <div class="mailingListInfo-row">
+              <dt>Subscribe</dt>
+              <dd>
+                <a href="{{ .Params.subscribe_mailto }}">Subscribe (individual mail)</a>
+                &middot;
+                <a href="{{ .Params.subscribe_digest_mailto }}">Subscribe (daily digest)</a>
+              </dd>
+            </div>
+            <div class="mailingListInfo-row">
+              <dt>Unsubscribe</dt>
+              <dd><a href="{{ .Params.unsubscribe_mailto }}">Unsubscribe</a></dd>
+            </div>
+            <div class="mailingListInfo-row">
+              <dt>Post</dt>
+              <dd><a href="{{ .Params.post_mailto }}">{{ .Params.list_address }}</a> (no subscription required)</dd>
+            </div>
+            <div class="mailingListInfo-row">
+              <dt>Web archive</dt>
+              <dd><a href="{{ .Params.archive_url }}" target="_blank" rel="noopener">{{ .Params.archive_url }}</a></dd>
+            </div>
+            <div class="mailingListInfo-row">
+              <dt>Patch tracking</dt>
+              <dd><a href="{{ .Params.patchwork_url }}" target="_blank" rel="noopener">Bluetooth project on Patchwork</a></dd>
+            </div>
+            <div class="mailingListInfo-row">
+              <dt>List hosting</dt>
+              <dd><a href="{{ .Params.hosting_info_url }}" target="_blank" rel="noopener">kernel.org subspace documentation</a></dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="pageActionWrapper backLinkWrapper">
+          <a href="{{ "/" | relURL }}" title="Back to home">Back to home</a>
+        </div>
+      </div>
+    </section>
+
+    {{- partial "footer-links.html" . -}}
+  </main>
+  {{- partial "footer.html" . -}}
+{{ end }}

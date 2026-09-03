@@ -4,7 +4,8 @@
       <div class="footer-link-col">
         <h3>{{ .heading }}</h3>
         <p>{{ .description }}</p>
-        <a href="{{ .url }}" class="footer-link-action" target="_blank" rel="noopener">
+        {{ $isExternal := not (hasPrefix .url "/") }}
+        <a href="{{ .url | relURL }}" class="footer-link-action" {{ if $isExternal }}target="_blank" rel="noopener"{{ end }}>
           {{ partial (printf "icons/%s.html" .icon) . }}
           {{ .link_text }}
         </a>
