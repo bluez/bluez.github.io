@@ -66,5 +66,25 @@
   - Modules: dark background with subtle blue geometric texture and high-contrast cards.
   - Profiles/Features/News: light backgrounds with strong readability.
 
+## Supported Profiles Section
+`data/profiles.yaml` drives the table. Every field is display data and may be
+edited by hand; keep the wording short, since each row renders on two lines.
+
+- `abbr`, `full`, `roles`, `note`, `url`: the abbreviation, the full name, the
+  roles the implementation plays, an optional remark of a few words, and the
+  specification page.
+- `version`: what the implementation advertises in its SDP records or version
+  constants, decoded from hex BCD (0x0104 is 1.4). When the code advertises no
+  version, it is the version of the specification the code implements. Two
+  versions joined by " / " mean the roles differ; `roles` says which is which.
+- `codecs`: the codecs PipeWire provides for that row, in display order.
+- `tag`: `experimental` or `testing`, mirroring the flags on the bluez
+  registration; the `notes` list at the top explains the badges.
+- `verified`: the bluez and PipeWire commits the table was last checked
+  against.
+
+Categories render as columns and rows render in file order. Lower-level
+building blocks (GAP, L2CAP, SDP, GATT) belong in the `intro`, not in a row.
+
 ## Deployment Reference
 - GitHub Pages deploy workflow: `.github/workflows/hugo.yml`.
