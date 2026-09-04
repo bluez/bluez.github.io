@@ -1,7 +1,7 @@
-heading: "Currently **BlueZ** consists of many separate modules:"
+heading: "**BlueZ** consists of several independent modules:"
 items:
-  - "Bluetooth kernel subsystem core (including L2CAP, SCO and RFCOMM)"
-  - "HCI UART, USB, PCI-E and virtual adapter drivers"
-  - "System daemon with D-Bus APIs for access and integration"
-  - "Configuration and testing utilities"
-  - "Protocol decoding and analysis tools"
+  - "Kernel subsystem with L2CAP, SCO, RFCOMM and ISO channels"
+  - "btusb, hci_uart, btsdio, vhci and many vendor-specific drivers"
+  - "bluetoothd, the system daemon exposing the D-Bus API"
+  - "bluetooth-meshd and obexd for mesh and object exchange"
+  - "bluetoothctl, btmgmt and btmon for control and analysis"

@@ -1,6 +1,6 @@
 columns:
-  - heading: "Download"
-    description: "The current modules of BlueZ are included in the Linux 2.6 kernel series. It is always a good idea to use the latest stable kernel. Kernel modules are in the Linux kernel since 2.4.6 release."
+  - heading: "Source"
+    description: "BlueZ ships in every major Linux distribution, so most people never need to build it themselves. The userspace source is on GitHub. Kernel changes go through the linux-bluetooth mailing list."
     url: "https://github.com/bluez/bluez"
     link_text: "BlueZ on GitHub"
     icon: "github"
