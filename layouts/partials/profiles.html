@@ -1,18 +1,41 @@
 <section class="profiles" id="profiles">
   <div class="container">
     <h2>{{ (hugo.Data).profiles.heading }}</h2>
-    <p class="profiles-sub">{{ (hugo.Data).profiles.intro | markdownify | replaceRE "^<p>(.*)</p>\n?$" "$1" | safeHTML }}</p>
+    <div class="profiles-sub">{{ (hugo.Data).profiles.intro | markdownify }}</div>
     <div class="profiles-grid">
       {{ range (hugo.Data).profiles.categories }}
         <div class="profile-table">
           <h3>{{ .name }}</h3>
           <ul>
-            {{ range .items }}
-              <li>{{ . }}</li>
+            {{ range $item := .items }}
+              <li>
+                <span class="profile-name">
+                  {{ with $item.url }}
+                    <a href="{{ . }}" target="_blank" rel="noopener">{{ $item.abbr }}</a>
+                  {{ else }}
+                    {{ $item.abbr }}
+                  {{ end }}
+                  {{ with $item.version }}<span class="profile-version">{{ . }}</span>{{ end }}
+                  {{ with $item.tag }}<span class="profile-tag">{{ . }}</span>{{ end }}
+                </span>
+                <span class="profile-desc">
+                  {{ $item.full }}{{ with $item.roles }} &middot; {{ . }}{{ end }}{{ with $item.codecs }} &middot; {{ delimit . ", " " and " }} {{ if gt (len .) 1 }}codecs{{ else }}codec{{ end }} from PipeWire{{ end }}{{ with $item.note }} &middot; {{ . }}{{ end }}
+                </span>
+              </li>
             {{ end }}
           </ul>
         </div>
       {{ end }}
     </div>
+    {{ with (hugo.Data).profiles.notes }}
+      <ul class="profiles-notes">
+        {{ range . }}
+          <li>
+            <span class="profile-tag">{{ .tag }}</span>
+            <span class="profiles-note-text">{{ .text | markdownify | replaceRE "^<p>(.*)</p>\n?$" "$1" | safeHTML }}</span>
+          </li>
+        {{ end }}
+      </ul>
+    {{ end }}
   </div>
 </section>
