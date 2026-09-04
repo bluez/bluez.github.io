@@ -86,5 +86,9 @@ edited by hand; keep the wording short, since each row renders on two lines.
 Categories render as columns and rows render in file order. Lower-level
 building blocks (GAP, L2CAP, SDP, GATT) belong in the `intro`, not in a row.
 
+To refresh the table from upstream, use the `update-profiles` skill in
+`.agents/skills/update-profiles/`. It ends at a local commit for a person to
+review and push.
+
 ## Deployment Reference
 - GitHub Pages deploy workflow: `.github/workflows/hugo.yml`.
