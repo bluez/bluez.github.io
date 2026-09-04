@@ -570,9 +570,18 @@ ul {
   padding-right: 5%;
 }
 
+.profiles-sub p {
+  margin: 0 0 6px;
+}
+
+.profiles-sub p:last-child {
+  margin-bottom: 0;
+}
+
 .profiles-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
+  align-items: start;
   gap: 16px;
 }
 
@@ -595,15 +604,92 @@ ul {
 .profile-table ul {
   padding-left: 15px;
   margin: 0 15px;
-  columns: 2;
 }
 
 .profile-table li {
   font-size: 14px;
   color: var(--color-grey);
   padding-left: 5px;
-  margin-bottom: 6px;
+  margin-bottom: 10px;
   line-height: 130%;
+}
+
+.profile-name {
+  display: block;
+  color: var(--color-black);
+  font-weight: 600;
+}
+
+.profile-name a {
+  color: var(--color-dark-blue);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(0, 57, 207, 0.35);
+}
+
+.profile-name a:hover,
+.profile-name a:focus {
+  color: var(--color-light-blue);
+  border-bottom-color: var(--color-light-blue);
+}
+
+.profile-version {
+  font-weight: 400;
+  color: var(--color-grey);
+}
+
+.profile-tag {
+  display: inline-block;
+  margin-left: 4px;
+  padding: 1px 6px;
+  border-radius: 8px;
+  background: #e0e6f7;
+  color: var(--color-dark-blue);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: lowercase;
+  vertical-align: 1px;
+}
+
+.profile-desc {
+  display: block;
+  margin-top: 2px;
+  font-size: 12.5px;
+  line-height: 140%;
+  color: #666;
+}
+
+.profiles-notes {
+  list-style: none;
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 8px 12px;
+  max-width: 950px;
+  margin: 24px auto 0;
+  padding: 0;
+}
+
+.profiles-notes li {
+  display: contents;
+}
+
+.profiles-notes .profile-tag {
+  margin-left: 0;
+  justify-self: start;
+  align-self: center;
+  vertical-align: baseline;
+}
+
+.profiles-note-text {
+  font-size: 13px;
+  line-height: 155%;
+  color: #666;
+}
+
+.profiles-notes code {
+  font-family: "Source Code Pro", Courier, 'Courier New', monospace;
+  font-size: 12px;
+  color: var(--color-grey);
 }
 
 @media only screen and (max-width: 1400px) {
@@ -619,6 +705,9 @@ ul {
   .profiles-sub {
     font-size: 17px;
   }
+  .profiles-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media only screen and (max-width: 750px) {
@@ -629,14 +718,11 @@ ul {
 
 @media only screen and (max-width: 640px) {
   .profiles-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
   }
 }
 
 @media only screen and (max-width: 500px) {
-  .profiles-grid {
-    grid-template-columns: 1fr;
-  }
   .profiles-sub {
     font-size: 16px;
   }
