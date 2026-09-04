@@ -3,7 +3,7 @@ languageCode = 'en-us'
 title = 'BlueZ - Official Linux Bluetooth Protocol Stack'
 
 [params]
-  description = 'BlueZ is the official Linux Bluetooth protocol stack. It is flexible, efficient and uses a modular implementation.'
+  description = 'BlueZ is the official Linux Bluetooth protocol stack. Part of the mainline kernel, it supports Classic Bluetooth and Low Energy with D-Bus and socket APIs.'
   copyrightYearStart = 2000
 
 [pagination]

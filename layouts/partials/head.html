@@ -1,7 +1,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ .Site.Title }}</title>
-<meta name="description" content="{{ .Site.Params.description }}">
+<title>{{ if .IsHome }}{{ .Site.Title }}{{ else }}{{ .Title }} | BlueZ{{ end }}</title>
+{{- $desc := .Site.Params.description -}}
+{{- with .Params.description }}{{ $desc = . }}
+{{- else }}{{ with .Params.summary }}{{ $desc = . }}{{ end }}{{ end -}}
+<meta name="description" content="{{ $desc | plainify | chomp | truncate 155 }}">
 
 {{/* CSS via Hugo Pipes */}}
 {{ $css := resources.Get "css/main.css" | minify | fingerprint }}
