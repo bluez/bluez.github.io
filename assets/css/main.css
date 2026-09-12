@@ -912,7 +912,7 @@ ul {
 
 .footer-links-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 2rem;
 }
 
@@ -962,6 +962,13 @@ a.footer-link-action:hover {
   .footer-link-col p,
   .footer-link-action {
     padding-right: 5%;
+  }
+}
+
+@media only screen and (max-width: 1200px) {
+  .footer-links-grid {
+    grid-template-columns: repeat(2, 1fr);
+    row-gap: 3rem;
   }
 }
 
