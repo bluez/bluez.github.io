@@ -562,16 +562,17 @@ ul {
 
 .profiles-sub {
   text-align: center;
-  font-size: 18px;
-  line-height: 145%;
+  font-size: 16px;
+  line-height: 160%;
   color: var(--color-grey);
-  margin-bottom: 2rem;
+  max-width: 48rem;
+  margin: 1.25rem auto 2.75rem;
   padding-left: 5%;
   padding-right: 5%;
 }
 
 .profiles-sub p {
-  margin: 0 0 6px;
+  margin: 0 0 10px;
 }
 
 .profiles-sub p:last-child {
@@ -579,31 +580,27 @@ ul {
 }
 
 .profiles-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  align-items: start;
-  gap: 16px;
+  columns: 3;
+  column-gap: 40px;
 }
 
 .profile-table {
-  border: 1px solid #eee;
-  border-radius: 0;
-  padding: 0 0 15px;
-  background: #f5f5f5;
+  margin-bottom: 22px;
 }
 
 .profile-table h3 {
-  background-color: #e8e8e8;
-  padding: 10px 15px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #ddd;
   color: var(--color-black);
   font-size: 16px;
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  break-after: avoid;
 }
 
 .profile-table ul {
-  padding-left: 15px;
-  margin: 0 15px;
+  padding-left: 18px;
+  margin: 0;
 }
 
 .profile-table li {
@@ -612,6 +609,7 @@ ul {
   padding-left: 5px;
   margin-bottom: 10px;
   line-height: 130%;
+  break-inside: avoid;
 }
 
 .profile-name {
@@ -641,9 +639,9 @@ ul {
   display: inline-block;
   margin-left: 4px;
   padding: 1px 6px;
-  border-radius: 8px;
-  background: #e0e6f7;
-  color: var(--color-dark-blue);
+  border-radius: 0;
+  background: #e8e8e8;
+  color: var(--color-grey);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0;
@@ -664,9 +662,9 @@ ul {
   display: grid;
   grid-template-columns: max-content 1fr;
   gap: 8px 12px;
-  max-width: 950px;
+  max-width: 48rem;
   margin: 24px auto 0;
-  padding: 0;
+  padding: 0 5%;
 }
 
 .profiles-notes li {
@@ -675,7 +673,7 @@ ul {
 
 .profiles-notes .profile-tag {
   margin-left: 0;
-  justify-self: start;
+  justify-self: end;
   align-self: center;
   vertical-align: baseline;
 }
@@ -703,10 +701,10 @@ ul {
     padding: 50px 0 60px;
   }
   .profiles-sub {
-    font-size: 17px;
+    font-size: 15px;
   }
   .profiles-grid {
-    grid-template-columns: repeat(2, 1fr);
+    columns: 2;
   }
 }
 
@@ -718,13 +716,13 @@ ul {
 
 @media only screen and (max-width: 640px) {
   .profiles-grid {
-    grid-template-columns: 1fr;
+    columns: 1;
   }
 }
 
 @media only screen and (max-width: 500px) {
   .profiles-sub {
-    font-size: 16px;
+    font-size: 14px;
   }
 }
 
