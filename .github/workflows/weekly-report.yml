@@ -142,8 +142,22 @@ jobs:
 
           git checkout -b "${BRANCH}"
           git add "${POST_FILE}"
+
+          # A re-run for a week that is already published produces an
+          # identical file, since rendering is deterministic.
+          if git diff --cached --quiet; then
+            echo "Report for week ${WEEK} is unchanged; nothing to do."
+            exit 0
+          fi
+
           git commit -m "Add weekly report for Week ${WEEK} (${START} to ${END})"
           git push --force origin "${BRANCH}"
+
+          # Reuse the existing PR for this branch if one is already open.
+          if gh pr view "${BRANCH}" --json number >/dev/null 2>&1; then
+            echo "Pull request for ${BRANCH} already exists; branch updated."
+            exit 0
+          fi
 
           gh pr create \
             --title "Add weekly report for Week ${WEEK} (${START} to ${END})" \
